@@ -1,15 +1,21 @@
-import express from "express";
-import dotenv from "dotenv";
+import express from 'express'
+import dotenv from 'dotenv'
+import router from './src/routes/index.js'
+const app = express()
+dotenv.config()
+// middleware
+app.use( express.json() )
+// router
+app.use( "/api", router )
 
-const app = express();
+app.use((err, req, res, next) => {
+    console.log("Error", err)
+    return res.status(500).json({
+        errror : err.message
+    })
+})
 
-app.use(express.json());
-
-app.route("/").get((req, res) => {
-    res.send("Hello World");
-});
-
-const PORT = 8000;
-app.listen(PORT, (req, res) => {
-    console.log(`Server runs at http://localhost:${PORT}`);
-});
+const Port = process.env.Port || 8000
+app.listen(Port, (req, res) => {
+    console.log(`Server run at http://localhost:${Port}`)
+})
