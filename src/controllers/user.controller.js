@@ -3,6 +3,7 @@ import userService from "../services/user.service.js"
 const GetAll = async( req, res, next ) => {
     try {
         const users = await userService.GetAll()
+        res.render("index", { data : users })
         return res.status(200).json({
             data : users
         })        
