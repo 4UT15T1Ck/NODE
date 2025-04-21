@@ -1,34 +1,40 @@
 import express from 'express'
 import dotenv from 'dotenv'
-import router from './src/routes/index.js'
 import path from 'path'
-import { fileURLToPath } from 'url'
-import { dirname } from 'path'
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import router from './src/routes/index.js'
+import db from './src/database/mongodb.js'
 
 const app = express()
 dotenv.config()
-// middleware
-app.use( express.json() )
-// router
-app.use( "/api", router )
+
+const __dirname = path.resolve()
+
+app.use(express.json())
 
 app.set('view engine', 'ejs')
 
-app.set('views', path.join(__dirname, 'src', 'views'))
-
-app.use(express.static(path.join(__dirname, 'src', 'public')))
+app.use("/api", router)
 
 app.use((err, req, res, next) => {
-    console.log("Error", err)
+    console.error("Error", err)
     return res.status(500).json({
-        errror : err.message
+        error: err.message
     })
 })
 
-const Port = process.env.Port || 8000
-app.listen(Port, (req, res) => {
-    console.log(`Server run at http://localhost:${Port}`)
+const startServer = async ()=>{
+    try {
+        await db.connectDB();
+        console.log("MongoDB server started");
+    } catch (error) {
+        console.error("Error starting server:", error)
+        throw error;
+        
+    }
+}
+startServer();
+
+const PORT = process.env.PORT || 8000
+app.listen(PORT, () => {
+    console.log(`🚀 Server run at http://localhost:${PORT}`)
 })

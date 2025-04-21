@@ -1,57 +1,52 @@
+import db from "../database/mongodb.js";
+import { ObjectId } from "mongodb";
 
-import DbHelper from '../helpers/DbHelper.js'
+const mongoDB = await db.getDB();
 
-const GetAll = async() => {
-    const db = await DbHelper.readDb()
-    return db.User
-}
+const GetAll = async () => {
+    const userList = await mongoDB.collection("users").find().toArray();
+    return userList;
+};
 
-const Post = async( body ) => {
-    const db = await DbHelper.readDb()
-    const index = db.User.findIndex( (user) => user.id === body.id )
-    if ( index !== -1 ) {
-        throw new Error("id exists")
+const GetById = async (id) => {
+    const user = await mongoDB.collection("users").findOne({ _id: new ObjectId(id) });
+    if (!user) {
+        throw new Error("User not found");
     }
-    db.User.push( body )
-    await DbHelper.writeDb( db )
-}
+    return user;
+};
 
-const GetById = async( id ) => {
-    const db = await DbHelper.readDb()
-    const index = db.User.findIndex( (user) => user.id === id )
-    if ( index === -1 ) {
-        throw new Error("User not found")
-    } 
-    return db.User[index] 
-
-}
-
-const PutById = async( id, body ) => {
-    const db = await DbHelper.readDb()
-    const index = db.User.findIndex((user) => user.id === id)
-    if (index === -1) {
-        throw new Error("User not found")
-    } 
-    db.User[index] = { ...db.User[index], ...body }
-    await DbHelper.writeDb(db)
-    return db.User[index]
-}
-
-const DeleteById = async( id ) => {
-    const db = await DbHelper.readDb();
-    const index = db.User.findIndex((user) => user.id === id)
-    if (index === -1) {
-        throw new Error("User not found")
+const GetByField = async (field, condition) => {
+    const result = await mongoDB.collection("users").find({ [field]: condition }).toArray();
+    if (!result || result.length === 0) {
+        throw new Error("User not found");
     }
-    db.User.splice(index, 1)
-    await DbHelper.writeDb(db)
-    return db.User
-}
+    return result;
+};
 
-export default {
-    GetAll , 
-    Post ,
-    GetById ,
-    PutById ,
-    DeleteById
-}
+const CreateUser = async (data) => {
+    const result = await mongoDB.collection("users").insertOne(data);
+    if (result.insertedId) {
+        return result.insertedId;
+    }
+    throw new Error("User creation failed");
+};
+
+const UpdateUserByID = async (id, data) => {
+    const result = await mongoDB.collection("users").updateOne({ _id: new ObjectId(id) }, { $set: data });
+    if (result.matchedCount === 0) {
+        throw new Error("User not found");
+    }
+    return result.modifiedCount > 0;
+};
+
+
+const DeleteUserByID = async (id) => {
+    const result = await mongoDB.collection("users").deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 0) {
+        throw new Error("User not found");
+    }
+    return result.deletedCount > 0;
+};
+
+export default { GetAll, GetById, CreateUser, UpdateUserByID, GetByField, DeleteUserByID };

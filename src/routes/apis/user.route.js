@@ -5,12 +5,16 @@ const router = express.Router()
 
 router.route("/")
     .get(userController.GetAll)
-    .post(ValidateUserId, userController.Post)
+    .post(userController.Post)
 
 router
+    .route("/filter")
+    .get(userController.GetByField)
+    
+router
     .route("/:id")
-    .get(ValidateUserId, userController.GetById)
-    .put(ValidateUserId, userController.PutById)
-    .delete(ValidateUserId, userController.DeleteById)
+    .get(userController.GetById)
+    .put(userController.PutById)
+    .delete(userController.DeleteById)
 
 export default router
