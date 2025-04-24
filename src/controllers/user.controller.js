@@ -1,88 +1,67 @@
 import userService from "../services/user.service.js"
 
-const GetAll = async( req, res, next ) => {
+class UserController {
+  async GetAll(req, res, next) {
     try {
-        const users = await userService.GetAll()
-        // res.render("index", { data : users }) 
-        return res.status(200).json({
-            data : users
-        })        
+      const users = await userService.GetAll()
+      return res.status(200).json({ data: users })
     } catch (error) {
-        next( error )
+      next(error)
     }
-}
+  }
 
-const Post = async( req, res, next ) => {
+  async GetById(req, res, next) {
     try {
-        const body = req.body
-        const user = await userService.CreateUser( body )
-        return res.status(201).json("Created")
-    } catch (error) {
-        next( error )
-    }
-}
-
-const GetById = async( req, res, next ) => {
-    try {
-        const id = req.params.id
-        const user = await userService.GetById( id )
-            return res.status(200).json({
-                data : user
-            })
-        }
-    catch (error) {
-        next( error )
-    }
-}
-
-const GetByField = async (req, res) => {
-    try {
-      const { field, value } = req.query;
-  
-      if (!field || !value) {
-        return res.status(400).json({ message: 'Thiếu field hoặc value' });
+      const id = req.params.id
+      const user = await userService.GetById(id)
+      if (!user) {
+        return res.status(404).json("Not Found")
       }
-  
-      const parsedValue = isNaN(value) ? value : parseInt(value);
-  
-      const users = await userService.GetByField(field, parsedValue);
-      res.status(200).json(users);
-    } catch (err) {
-      res.status(404).json({ message: err.message });
-    }
-  };
-
-const PutById = async( req, res, next ) => {
-    try {
-        const id = req.params.id 
-        const body = req.body
-        const user = await userService.UpdateUserByID( id, body )
-        return res.status(200).json({
-            data : user
-        })
+      return res.status(200).json({ data: user })
     } catch (error) {
-        next( error )
+      next(error)
     }
-}
+  }
 
-const DeleteById = async( req, res, next ) => {
+  async Create(req, res, next) {
     try {
-        const id = req.params.id 
-        const users = await userService.DeleteUserByID( id )
-        return res.status(200).json({
-            data : users
-        })
+      const body = req.body
+      const newUser = await userService.Create(body)
+      if (!newUser) {
+        return res.status(400).json("Bad Request")
+      }
+      return res.status(201).json({ data: newUser })
     } catch (error) {
-        next( error )
+      next(error)
     }
+  }
+
+  async Update(req, res, next) {
+    try {
+      const id = req.params.id
+      const body = req.body
+      const updatedUser = await userService.Update(id, body)
+      if (!updatedUser) {
+        return res.status(404).json("Not Found")
+      }
+      return res.status(200).json("Updated Successfully")
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  async Delete(req, res, next) {
+    try {
+      const id = req.params.id
+      const deleted = await userService.Delete(id)
+      if (!deleted) {
+        return res.status(404).json("Not Found")
+      }
+      return res.status(200).json("Deleted Successfully")
+    } catch (error) {
+      next(error)
+    }
+  }
 }
 
-
-export default {
-    GetAll,
-    Post,
-    GetById,
-    GetByField,
-    PutById,
-    DeleteById
-}
+export default new UserController()
